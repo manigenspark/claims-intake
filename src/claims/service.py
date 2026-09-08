@@ -112,6 +112,14 @@ def evaluate_claim_type_covered(
     raise NotImplementedError
 
 
+def evaluate_policy_not_cancelled(
+    notification: NotificationRequest,
+    policy: object,
+) -> ValidationOutcome:
+    """V-7. Cover must not have ended by cancellation."""
+    raise NotImplementedError
+
+
 def evaluate_notification(
     notification: NotificationRequest,
     policy_client: PolicyClient,
