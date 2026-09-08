@@ -16,7 +16,8 @@ doing.
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any
 
 from claims.models import ErrorCode, NotificationRequest, Policy, RuleFailure, RuleId
 from claims.policy_client import PolicyClient, PolicyNotFound
@@ -35,13 +36,15 @@ class ValidationOutcome:
 
     ``accepted`` is the branch the HTTP layer needs. On success,
     ``claim_reference`` is set. On refusal, ``failure`` carries the rule id and
-    contract code. ``passed`` / ``rule`` / ``code`` mirror those fields so the
+    contract code, and ``detail`` carries the values section 5 documents for
+    that code. ``passed`` / ``rule`` / ``code`` mirror those fields so the
     existing V-1 helper stays readable.
     """
 
     accepted: bool
     claim_reference: str | None = None
     failure: RuleFailure | None = None
+    detail: dict[str, Any] = field(default_factory=dict)
 
     @property
     def passed(self) -> bool:
@@ -64,8 +67,13 @@ class ValidationOutcome:
         return cls(accepted=True, claim_reference=claim_reference)
 
     @classmethod
-    def rejected(cls, failure: RuleFailure) -> ValidationOutcome:
-        return cls(accepted=False, failure=failure)
+    def rejected(
+        cls,
+        failure: RuleFailure,
+        *,
+        detail: dict[str, Any] | None = None,
+    ) -> ValidationOutcome:
+        return cls(accepted=False, failure=failure, detail=detail or {})
 
 
 def evaluate_policy_exists(
@@ -191,7 +199,10 @@ def submit_notification(
         notification.claim_type,
     )
     if existing is not None:
-        return ValidationOutcome.rejected(_fail("V-6", "DUPLICATE_NOTIFICATION"))
+        return ValidationOutcome.rejected(
+            _fail("V-6", "DUPLICATE_NOTIFICATION"),
+            detail={"claim_reference": existing.claim_reference},
+        )
 
     recorded = repository.record(notification)
     return ValidationOutcome.ok(claim_reference=recorded.claim_reference)
