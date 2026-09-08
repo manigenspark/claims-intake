@@ -1,0 +1,32 @@
+name: checks
+
+on:
+  pull_request:
+
+jobs:
+  verify:
+    name: ruff, mypy, pytest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies from the lockfile
+        # --frozen refuses to re-resolve; the committed uv.lock is the authority.
+        run: uv sync --frozen --all-groups
+
+      - name: Ruff
+        run: uv run ruff check .
+
+      - name: Mypy (source and tests)
+        # pyproject.toml tool.mypy.files already lists src and tests; state it
+        # here so a reader of the workflow sees the scope without opening that file.
+        run: uv run mypy src tests
+
+      - name: Pytest
+        run: uv run pytest
