@@ -77,12 +77,15 @@ Then use the same `curl` as above against `http://127.0.0.1:8000/notifications`.
 
 ### Why `--platform linux/amd64`
 
-This Codespace often runs on ARM (`linux/aarch64`), for example on Apple Silicon.
-The place that runs the service in deployment is typically an `amd64` (x86_64)
-machine or cluster node. If you build with no platform flag, Docker may produce
-an ARM image that runs here but fails or is rejected where the service is
-actually hosted. `--platform linux/amd64` forces the image to match that
-deployment architecture even when your laptop or Codespace CPU is different.
+**Short version:** always pass this flag when you build, even if the image
+already runs on your machine.
+
+Your Codespace or laptop may be ARM (Apple Silicon, `linux/aarch64`). Docker
+defaults to building for *your* CPU. That ARM image can look fine locally and
+still be the wrong artifact for deployment, which is usually `amd64` (x86_64).
+Without the flag you risk an image that works in the Codespace but fails or is
+rejected in the real environment. `--platform linux/amd64` pins the build to
+the architecture we deploy to, so local and shipped images stay aligned.
 
 ## Where things are
 
