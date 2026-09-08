@@ -47,15 +47,9 @@ catch that regression.
 
 ## Gate observation (Step 8)
 
-**Status.** Not yet verified on GitHub.
+**PR.** https://github.com/manigenspark/claims-intake/pull/1  
+**Deliberate failure.** Commit `a01ecf1` introduced invalid Python syntax in `src/claims/service.py`.  
+**Checks.** Job `checks / ruff, mypy, pytest` failed after ~12s.  
+**Merge.** Not blocked. GitHub still showed “Merging can be performed automatically” while the check was red.
 
-**What is ready locally.** `.github/workflows/checks.yaml` triggers on
-`pull_request`, installs with `uv sync --frozen`, and runs ruff, mypy over
-`src` and `tests`, and pytest. No step sets `continue-on-error`. Third-party
-actions are pinned to commit SHAs.
-
-**What still has to happen.** Push this branch to a GitHub remote, open a pull
-request, push a commit that deliberately fails one check, and observe whether
-required status checks **block merge** or only mark the PR. Record the outcome
-here. If merge is not blocked, that is a finding about branch protection
-configuration, not something to work around in the workflow file.
+**Detail.** The workflow correctly refused the bad commit (the check failed). Merge into `main` was still allowed because no branch protection / ruleset requires that status check. Per the assignment, that is a finding about repository configuration, not a defect in `checks.yaml`.
